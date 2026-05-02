@@ -18,7 +18,8 @@ if [ ! -L public/storage ]; then
     php artisan storage:link
 fi
 
-sudo chown -R deploy:www-data /var/www/laravel-log2-loki
-sudo chmod -R 775 storage bootstrap/cache
+sudo chown -R deploy:www-data storage bootstrap/cache
+sudo chmod -R ug+rwX storage bootstrap/cache
+sudo find storage bootstrap/cache -type d -exec chmod g+s {} \;
 
 echo "Deploy finished."
