@@ -100,6 +100,30 @@ Local backup verification:
 
 gzip -t ~/backups/laravel-log2-loki/*.sql.gz
 
+## HTTPS status
+
+Current status:
+
+HTTP only.
+
+Reason:
+
+No domain is configured yet.
+
+Required next steps for real HTTPS:
+
+1. Buy or configure a domain.
+2. Point DNS A record to 91.107.169.146.
+3. Change Nginx server_name from IP to domain.
+4. Install Certbot.
+5. Issue Let's Encrypt certificate.
+6. Redirect HTTP to HTTPS.
+7. Set SESSION_SECURE_COOKIE=true after HTTPS is active.
+
+Warning:
+
+Do not treat HTTP as secure. Login, sessions, admin panels, tokens, forms, and user data must not rely on plain HTTP.
+
 ## Important warnings
 
 Do not commit .env.
