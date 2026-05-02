@@ -31,12 +31,18 @@ final class RequestContextLogging
 
         $durationMs = (int) round((hrtime(true) - $startedAt) / 1_000_000);
 
-        Log::warning('http_request', $this->contextBuilder->build(
+        $context = $this->contextBuilder->build(
             request: $request,
             response: $response,
             requestId: $requestId,
             durationMs: $durationMs
-        ));
+        );
+
+        if ($response->getStatusCode() >= 400 || $durationMs >= 1000) {
+            Log::warning('http_request', $context);
+        } else {
+            Log::info('http_request', $context);
+        }
 
         return $response;
     }
