@@ -87,6 +87,19 @@ Only the latest successful backup is kept.
 Warning:
 
 Keeping only one backup is risky. If corrupted data is backed up, the last known-good backup may be lost.
+
+Local backup pull command from WSL/bash:
+
+scp 'laravel-server:/home/deploy/backups/laravel-log2-loki/*.sql.gz' ~/backups/laravel-log2-loki/
+
+Local backup directory:
+
+/home/masoud/backups/laravel-log2-loki
+
+Local backup verification:
+
+gzip -t ~/backups/laravel-log2-loki/*.sql.gz
+
 ## Important warnings
 
 Do not commit .env.
