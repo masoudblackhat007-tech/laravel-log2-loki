@@ -124,6 +124,45 @@ Warning:
 
 Do not treat HTTP as secure. Login, sessions, admin panels, tokens, forms, and user data must not rely on plain HTTP.
 
+## JSON logging
+
+Current status:
+
+Laravel file logs are formatted as JSON lines.
+
+Formatter class:
+
+app/Logging/JsonFormatterTap.php
+
+Configured channels:
+
+single
+daily
+
+Production log file:
+
+/var/www/laravel-log2-loki/storage/logs/laravel.log
+
+Production log level:
+
+warning
+
+Important behavior:
+
+info logs are ignored in production because LOG_LEVEL=warning.
+
+Server test command:
+
+php artisan tinker --execute="logger()->warning('server_json_logging_warning_test', ['check' => true, 'source' => 'server']);"
+
+Expected output shape:
+
+{"message":"server_json_logging_warning_test","context":{"check":true,"source":"server"},"level":300,"level_name":"WARNING","channel":"production","datetime":"...","extra":[]}
+
+Warning:
+
+JSON formatting alone does not make logs safe. Do not log raw tokens, passwords, session IDs, cookies, authorization headers, private files, or full user payloads.
+
 ## Important warnings
 
 Do not commit .env.
