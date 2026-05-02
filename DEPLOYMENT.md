@@ -163,6 +163,43 @@ Warning:
 
 JSON formatting alone does not make logs safe. Do not log raw tokens, passwords, session IDs, cookies, authorization headers, private files, or full user payloads.
 
+HTTP request logging:
+
+Enabled through middleware:
+
+app/Http/Middleware/RequestContextLogging.php
+
+Registered in:
+
+bootstrap/app.php
+
+Request context builder:
+
+app/Logging/RequestLogContextBuilder.php
+
+Each HTTP request logs:
+
+request_id
+service
+environment
+method
+path
+route
+status_code
+duration_ms
+masked client_ip
+user_agent
+user_id when authenticated
+session_hash instead of raw session_id
+
+Response header:
+
+X-Request-Id
+
+Current limitation:
+
+Successful HTTP requests are currently logged at warning level so they are visible with LOG_LEVEL=warning. This is useful for the exercise, but semantically request logs should usually be info level, while warnings should be reserved for slow, failed, or suspicious requests.
+
 ## Important warnings
 
 Do not commit .env.
