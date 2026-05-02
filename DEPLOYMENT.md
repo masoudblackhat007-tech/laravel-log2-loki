@@ -196,9 +196,13 @@ Response header:
 
 X-Request-Id
 
-Current limitation:
+Current request log level policy:
 
-Successful HTTP requests are currently logged at warning level so they are visible with LOG_LEVEL=warning. This is useful for the exercise, but semantically request logs should usually be info level, while warnings should be reserved for slow, failed, or suspicious requests.
+Successful and fast HTTP requests are logged at info level.
+
+Requests with status_code >= 400 or duration_ms >= 1000 are logged at warning level.
+
+Production LOG_LEVEL must be info if normal request logs should be written.
 
 ## Important warnings
 
