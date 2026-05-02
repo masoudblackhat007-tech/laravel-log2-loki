@@ -50,6 +50,43 @@ tmux attach -t deploy || tmux new -s deploy
 cd /var/www/laravel-log2-loki
 ./deploy.sh
 
+## Database backup
+
+Manual backup command on server:
+
+/home/deploy/scripts/backup-laravel-log2-loki.sh
+
+Backup directory:
+
+/home/deploy/backups/laravel-log2-loki
+
+Backup credential file:
+
+/home/deploy/.my-laravel-log2-backup.cnf
+
+Credential file permission:
+
+600
+
+Backup directory permission:
+
+700
+
+Backup file permission:
+
+600
+
+Cron schedule:
+
+15 3 * * * /home/deploy/scripts/backup-laravel-log2-loki.sh >> /home/deploy/backups/laravel-log2-loki/backup.log 2>&1
+
+Current retention policy:
+
+Only the latest successful backup is kept.
+
+Warning:
+
+Keeping only one backup is risky. If corrupted data is backed up, the last known-good backup may be lost.
 ## Important warnings
 
 Do not commit .env.
