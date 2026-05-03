@@ -447,6 +447,48 @@ curl -sS http://127.0.0.1:12345/-/ready
 
 Query Laravel logs from Loki:
 
+Grafana Loki datasource:
+
+A Loki datasource is provisioned in Grafana.
+
+Provisioning file:
+
+/etc/grafana/provisioning/datasources/loki.yaml
+
+Datasource settings:
+
+name: Loki
+type: loki
+access: proxy
+url: http://127.0.0.1:3100
+isDefault: true
+editable: false
+
+Grafana admin password:
+
+The Grafana admin password is stored server-side only:
+
+/root/grafana-admin-password.txt
+
+The file is owned by root and has permission 600.
+
+Important rule:
+
+Do not commit, print, or paste the Grafana admin password into Git, chat, logs, documentation, shell history snippets, or deployment notes.
+
+Verify datasource through Grafana proxy:
+
+GRAFANA_ADMIN_PASSWORD="$(sudo cat /root/grafana-admin-password.txt)"
+
+curl -G -sS \
+-u "admin:${GRAFANA_ADMIN_PASSWORD}" \
+"http://127.0.0.1:3000/api/datasources/proxy/uid/P8E80F9AEF21F6940/loki/api/v1/query_range" \
+--data-urlencode 'query={job="laravel"}' \
+--data-urlencode 'limit=5' \
+| python3 -m json.tool
+
+unset GRAFANA_ADMIN_PASSWORD
+
 curl -G -sS "http://127.0.0.1:3100/loki/api/v1/query_range" \
 --data-urlencode 'query={job="laravel"}' \
 --data-urlencode 'limit=5' \
