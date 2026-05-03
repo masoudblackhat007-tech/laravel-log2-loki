@@ -204,6 +204,44 @@ Requests with status_code >= 400 or duration_ms >= 1000 are logged at warning le
 
 Production LOG_LEVEL must be info if normal request logs should be written.
 
+## JSON API error responses
+
+Current status:
+
+JSON exception responses are enabled for requests that expect JSON or match api/*.
+
+Configured in:
+
+bootstrap/app.php
+
+Error mapper:
+
+app/Support/Errors/ApiErrorMapper.php
+
+Error DTO:
+
+app/Support/Errors/ApiError.php
+
+Response shape:
+
+{"error":{"code":"HTTP_404","message":"The route not-found-test could not be found.","details":[]}}
+
+Rules:
+
+ValidationException returns VALIDATION_ERROR with details.
+AuthenticationException returns AUTH_ERROR.
+HttpExceptionInterface returns HTTP_<status>.
+QueryException returns DB_ERROR with a safe message.
+Unknown exceptions return INTERNAL_ERROR with a safe message.
+
+Security rule:
+
+Unknown 500 errors must not expose raw exception messages, stack traces, SQL queries, passwords, tokens, file paths, or internal service details.
+
+Production test command:
+
+curl -i -H "Accept: application/json" http://91.107.169.146/not-found-test
+
 ## Important warnings
 
 Do not commit .env.
