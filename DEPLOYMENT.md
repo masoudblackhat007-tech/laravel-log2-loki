@@ -300,6 +300,38 @@ Production test command:
 
 curl -i -H "Accept: application/json" http://91.107.169.146/not-found-test
 
+## Deployment health check
+
+Health check script:
+
+health-check.sh
+
+Run on server:
+
+cd /var/www/laravel-log2-loki
+./health-check.sh
+
+Checks performed:
+
+working tree is clean
+Laravel environment is production
+APP_DEBUG is off
+logging env is correct
+php8.4-fpm UMask=0027 is active
+HTTP endpoint returns headers
+X-Request-Id is present
+.env is not web-readable
+composer.json is not web-readable
+laravel.log is not web-readable
+today's daily log exists
+latest daily log line is JSON
+backup files exist
+backup gzip integrity test passes
+
+Important behavior:
+
+The health check requests /storage/logs/laravel.log to verify that logs are not exposed. This intentionally creates a 404 warning log entry. That warning is expected during health checks.
+
 ## Important warnings
 
 Do not commit .env.
