@@ -387,6 +387,76 @@ free -h
 swapon --show
 grep -n "/swapfile" /etc/fstab
 
+## Loki, Grafana, and Alloy
+
+Current status:
+
+Loki, Grafana, and Alloy are installed from the official Grafana APT repository.
+
+Installed versions:
+
+Loki 3.7.1
+Grafana 13.0.1
+Alloy 1.16.0
+
+Service status:
+
+loki is active and enabled.
+grafana-server is active and enabled.
+alloy is active and enabled.
+loki-ui is disabled and inactive.
+
+Network binding policy:
+
+Loki HTTP listens only on 127.0.0.1:3100.
+Loki gRPC listens only on 127.0.0.1:9095.
+Grafana listens only on 127.0.0.1:3000.
+Alloy listens only on 127.0.0.1:12345.
+
+No Grafana, Loki, or Alloy ports are opened in UFW.
+
+Old Docker containers:
+
+Old Docker containers named grafana and alloy were stopped because they conflicted with the APT/systemd services.
+
+Laravel log ingestion:
+
+Alloy reads:
+
+/var/www/laravel-log2-loki/storage/logs/laravel-*.log
+
+Alloy pushes to local Loki:
+
+http://127.0.0.1:3100/loki/api/v1/push
+
+Current Loki labels:
+
+environment
+filename
+host
+job
+service_name
+
+Verification commands:
+
+systemctl is-active loki grafana-server alloy
+systemctl is-enabled loki grafana-server alloy
+curl -sS http://127.0.0.1:3100/ready
+curl -sS http://127.0.0.1:3000/api/health
+curl -sS http://127.0.0.1:12345/-/ready
+
+Query Laravel logs from Loki:
+
+curl -G -sS "http://127.0.0.1:3100/loki/api/v1/query_range" \
+--data-urlencode 'query={job="laravel"}' \
+--data-urlencode 'limit=5' \
+| python3 -m json.tool
+
+Important security rule:
+
+Do not expose Loki directly to the internet. Loki is currently bound to localhost only.
+Do not expose Grafana directly without HTTPS, authentication hardening, and access control.
+
 ## Important warnings
 
 Do not commit .env.
