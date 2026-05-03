@@ -395,57 +395,67 @@ Loki, Grafana, and Alloy are installed from the official Grafana APT repository.
 
 Installed versions:
 
+```text
 Loki 3.7.1
 Grafana 13.0.1
 Alloy 1.16.0
+```
 
 Service status:
 
+```text
 loki is active and enabled.
 grafana-server is active and enabled.
 alloy is active and enabled.
 loki-ui is disabled and inactive.
+```
 
 Network binding policy:
 
+```text
 Loki HTTP listens only on 127.0.0.1:3100.
 Loki gRPC listens only on 127.0.0.1:9095.
 Grafana listens only on 127.0.0.1:3000.
 Alloy listens only on 127.0.0.1:12345.
+```
 
 No Grafana, Loki, or Alloy ports are opened in UFW.
 
+Important security rule:
+
+Do not expose Loki directly to the internet. Loki is currently bound to localhost only.
+
+Do not expose Grafana directly without HTTPS, authentication hardening, and access control.
+
 Old Docker containers:
 
-Old Docker containers named grafana and alloy were stopped because they conflicted with the APT/systemd services.
+Old Docker containers named `grafana` and `alloy` were stopped because they conflicted with the APT/systemd services.
 
 Laravel log ingestion:
 
-Alloy reads:
+Alloy reads Laravel daily JSON logs from:
 
+```text
 /var/www/laravel-log2-loki/storage/logs/laravel-*.log
+```
 
-Alloy pushes to local Loki:
+Alloy pushes logs to local Loki:
 
+```text
 http://127.0.0.1:3100/loki/api/v1/push
+```
 
 Current Loki labels:
 
+```text
 environment
 filename
 host
 job
 service_name
+```
 
-Verification commands:
-
-systemctl is-active loki grafana-server alloy
-systemctl is-enabled loki grafana-server alloy
-curl -sS http://127.0.0.1:3100/ready
-curl -sS http://127.0.0.1:3000/api/health
-curl -sS http://127.0.0.1:12345/-/ready
-
-Query Laravel logs from Loki:
+Do not add high-cardinality request fields as permanent Loki labels.
 
 Grafana Loki datasource:
 
@@ -453,51 +463,207 @@ A Loki datasource is provisioned in Grafana.
 
 Provisioning file:
 
+```text
 /etc/grafana/provisioning/datasources/loki.yaml
+```
 
 Datasource settings:
 
+```text
 name: Loki
 type: loki
 access: proxy
 url: http://127.0.0.1:3100
 isDefault: true
 editable: false
+```
+
+Current datasource UID:
+
+```text
+P8E80F9AEF21F6940
+```
+
+The datasource UID is not a secret, but it is environment-specific. If the datasource is recreated, the UID may change.
 
 Grafana admin password:
 
 The Grafana admin password is stored server-side only:
 
+```text
 /root/grafana-admin-password.txt
+```
 
-The file is owned by root and has permission 600.
+The file is owned by root and has permission `600`.
 
-Important rule:
+Important password rule:
 
-Do not commit, print, or paste the Grafana admin password into Git, chat, logs, documentation, shell history snippets, or deployment notes.
+Do not commit, print, paste, log, screenshot, or document the Grafana admin password.
+
+Do not include the password file content in Git, chat, shell history snippets, deployment notes, public backups, or shared logs.
+
+Verification commands:
+
+```bash
+systemctl is-active loki grafana-server alloy
+systemctl is-enabled loki grafana-server alloy
+
+curl -sS http://127.0.0.1:3100/ready
+curl -sS http://127.0.0.1:3000/api/health
+curl -sS http://127.0.0.1:12345/-/ready
+
+sudo ss -lntp | grep -Ei 'loki|grafana|alloy|:3000|:3100|:9095|:12345|:18090|:9096' || true
+```
+
+Expected status:
+
+```text
+loki: active, enabled
+grafana-server: active, enabled
+alloy: active, enabled
+loki-ui: inactive, disabled
+```
+
+Expected network exposure:
+
+```text
+127.0.0.1:3100   Loki HTTP
+127.0.0.1:9095   Loki gRPC
+127.0.0.1:3000   Grafana
+127.0.0.1:12345  Alloy
+```
+
+There must be no public listener for Loki, Grafana, or Alloy.
+
+Query Laravel logs directly from Loki:
+
+```bash
+curl -G -sS "http://127.0.0.1:3100/loki/api/v1/query_range" \
+  --data-urlencode 'query={job="laravel"}' \
+  --data-urlencode 'limit=5' \
+  | python3 -m json.tool
+```
 
 Verify datasource through Grafana proxy:
 
+```bash
 GRAFANA_ADMIN_PASSWORD="$(sudo cat /root/grafana-admin-password.txt)"
 
 curl -G -sS \
--u "admin:${GRAFANA_ADMIN_PASSWORD}" \
-"http://127.0.0.1:3000/api/datasources/proxy/uid/P8E80F9AEF21F6940/loki/api/v1/query_range" \
---data-urlencode 'query={job="laravel"}' \
---data-urlencode 'limit=5' \
-| python3 -m json.tool
+  -u "admin:${GRAFANA_ADMIN_PASSWORD}" \
+  "http://127.0.0.1:3000/api/datasources/proxy/uid/P8E80F9AEF21F6940/loki/api/v1/query_range" \
+  --data-urlencode 'query={job="laravel"}' \
+  --data-urlencode 'limit=5' \
+  | python3 -m json.tool
 
 unset GRAFANA_ADMIN_PASSWORD
+```
 
-curl -G -sS "http://127.0.0.1:3100/loki/api/v1/query_range" \
---data-urlencode 'query={job="laravel"}' \
---data-urlencode 'limit=5' \
-| python3 -m json.tool
+Useful LogQL queries:
 
-Important security rule:
+Show latest Laravel logs:
 
-Do not expose Loki directly to the internet. Loki is currently bound to localhost only.
-Do not expose Grafana directly without HTTPS, authentication hardening, and access control.
+```logql
+{job="laravel"}
+```
+
+Parse JSON fields:
+
+```logql
+{job="laravel"} | json
+```
+
+Show warnings:
+
+```logql
+{job="laravel"} | json | level_name="WARNING"
+```
+
+Show 404 responses:
+
+```logql
+{job="laravel"} | json | context_http_status_code=404
+```
+
+Show HEAD requests:
+
+```logql
+{job="laravel"} | json | context_http_method="HEAD"
+```
+
+Readable request summary:
+
+```logql
+{job="laravel"} | json | line_format "{{.level_name}} {{.context_http_status_code}} {{.context_http_method}} {{.context_http_path}} request_id={{.context_request_id}} duration_ms={{.context_http_duration_ms}}"
+```
+
+Flattened JSON field names:
+
+```text
+context.http.status_code  -> context_http_status_code
+context.http.method       -> context_http_method
+context.http.path         -> context_http_path
+context.request_id        -> context_request_id
+```
+
+Security and cardinality rule:
+
+Do not promote these fields to permanent Loki labels:
+
+```text
+request_id
+session_hash
+client_ip
+user_agent
+path
+route
+any user-controlled value
+```
+
+Use those values only as parsed fields at query time.
+
+Even hashed values such as `session_hash` must not become permanent labels. A hash is still a correlation identifier and can create privacy and cardinality problems.
+
+Operational notes:
+
+The health check intentionally requests blocked paths such as Laravel log files to confirm they are not web-readable. Those checks can create expected `404` warning entries in Loki.
+
+The path `storage/logs/laravel.log` appearing in warning logs is expected when testing that logs are not exposed over HTTP.
+
+Known Grafana note:
+
+Grafana may log a plugin installation warning like this:
+
+```text
+Failed to install plugin ... read-only file system
+```
+
+Grafana is still considered healthy if both checks pass:
+
+```bash
+systemctl is-active grafana-server
+curl -sS http://127.0.0.1:3000/api/health
+```
+
+Expected health output includes:
+
+```text
+active
+database: ok
+```
+
+Do not ignore repeated or new Grafana errors without investigation, but the existing plugin warning is not currently blocking Loki datasource usage.
+
+Final working pipeline:
+
+```text
+Laravel JSON daily logs
+  -> /var/www/laravel-log2-loki/storage/logs/laravel-YYYY-MM-DD.log
+  -> Alloy
+  -> Loki
+  -> Grafana Loki datasource
+  -> Grafana proxy query
+```
 
 ## Important warnings
 
