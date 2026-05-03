@@ -363,6 +363,30 @@ Run tests locally or in CI before pushing/deploying.
 Deploy only after tests pass.
 Use health-check.sh on the production server after deployment.
 
+## Server swap
+
+Current status:
+
+A 2GB swap file is enabled.
+
+Swap file:
+
+/swapfile
+
+fstab entry:
+
+/swapfile none swap sw 0 0
+
+Reason:
+
+The server has 3.7GiB RAM and no default swap. Loki and Grafana can increase memory pressure, so a small swap file reduces the risk of sudden OOM kills during spikes.
+
+Verification commands:
+
+free -h
+swapon --show
+grep -n "/swapfile" /etc/fstab
+
 ## Important warnings
 
 Do not commit .env.
