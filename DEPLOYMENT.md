@@ -100,6 +100,26 @@ Local backup verification:
 
 gzip -t ~/backups/laravel-log2-loki/*.sql.gz
 
+Restore test:
+
+A real restore test was performed into a separate database:
+
+laravel_log2_loki_restore_test
+
+The backup was imported successfully.
+
+Verified table counts:
+
+migrations matched.
+users matched.
+jobs matched.
+
+The restore test database was dropped after verification.
+
+Important rule:
+
+Never restore a backup directly into the production database for testing. Always restore into a separate temporary database first.
+
 ## HTTPS status
 
 Current status:
