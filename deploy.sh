@@ -21,5 +21,6 @@ fi
 sudo chown -R deploy:www-data storage bootstrap/cache
 sudo chmod -R ug+rwX storage bootstrap/cache
 sudo find storage bootstrap/cache -type d -exec chmod g+s {} \;
+sudo find storage/logs -type f -name "*.log" -exec chmod 660 {} \;
 
 echo "Deploy finished."

@@ -254,9 +254,13 @@ Override content:
 [Service]
 UMask=0027
 
-Expected new log file permission:
+Expected log file permission:
 
-640
+660
+
+Reason:
+
+Both www-data and deploy need write access. PHP-FPM writes web request logs as www-data, while deploy runs artisan, deploy scripts, and health checks. World access must remain disabled.
 
 Important rule:
 
