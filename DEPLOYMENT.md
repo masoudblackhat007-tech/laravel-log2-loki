@@ -224,6 +224,44 @@ Requests with status_code >= 400 or duration_ms >= 1000 are logged at warning le
 
 Production LOG_LEVEL must be info if normal request logs should be written.
 
+Log rotation:
+
+Laravel uses the daily log channel in production.
+
+Production logging env:
+
+LOG_CHANNEL=stack
+LOG_STACK=daily
+LOG_LEVEL=info
+LOG_DAILY_DAYS=14
+
+Daily log path format:
+
+/var/www/laravel-log2-loki/storage/logs/laravel-YYYY-MM-DD.log
+
+Retention:
+
+Laravel keeps daily logs for 14 days.
+
+Log file permission hardening:
+
+php8.4-fpm has a systemd override:
+
+/etc/systemd/system/php8.4-fpm.service.d/override.conf
+
+Override content:
+
+[Service]
+UMask=0027
+
+Expected new log file permission:
+
+640
+
+Important rule:
+
+Laravel logs must not be world-readable. Logs may contain operational details, request paths, exception metadata, user identifiers, or accidentally logged sensitive data.
+
 ## JSON API error responses
 
 Current status:
