@@ -336,6 +336,33 @@ Important behavior:
 
 The health check requests /storage/logs/laravel.log to verify that logs are not exposed. This intentionally creates a 404 warning log entry. That warning is expected during health checks.
 
+## Tests
+
+Current test coverage:
+
+ApiErrorResponseTest verifies structured JSON error responses and X-Request-Id.
+SensitiveDataRedactorTest verifies recursive redaction, IP masking, identifier hashing, and long string truncation.
+RequestContextLoggingTest verifies X-Request-Id behavior and info-level logging for successful requests.
+ApiErrorMapperTest verifies safe error mapping for unknown exceptions, database exceptions, authentication errors, and validation errors.
+
+Run tests locally:
+
+php artisan test
+
+Run a focused test locally:
+
+php artisan test --filter=ApiErrorMapperTest
+
+Production rule:
+
+Do not run the test suite on the production server as part of normal deployment. Production uses composer install --no-dev, so development test tooling is intentionally not installed there.
+
+Correct workflow:
+
+Run tests locally or in CI before pushing/deploying.
+Deploy only after tests pass.
+Use health-check.sh on the production server after deployment.
+
 ## Important warnings
 
 Do not commit .env.
